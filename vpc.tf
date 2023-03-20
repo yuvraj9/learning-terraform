@@ -2,12 +2,11 @@ provider "aws" {
     region = var.aws_region
 }
 
-# Define the availability zones based on the region
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Import the vpc module
+# Creating VPC and subnets
 module "my_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "3.19.0"

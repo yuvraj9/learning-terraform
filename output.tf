@@ -13,3 +13,8 @@ output "public_subnet_ids" {
 output "private_subnet_ids" {
   value = module.my_vpc.private_subnets
 }
+
+# Output the DNS of Loadbalancer
+output "lb_dns_name" {
+  value = aws_lb.my_lb.dns_name
+}

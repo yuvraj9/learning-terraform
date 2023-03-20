@@ -1,5 +1,5 @@
-# Define the user data for the EC2 instance
-data "template_file" "user_data" {
+# User data for the EC2 instance to install nginx
+data "template_file" "user_data_nginx" {
   template = <<-EOF
               #!/bin/bash
               yum update -y
@@ -8,7 +8,7 @@ data "template_file" "user_data" {
               systemctl enable nginx
               EOF
 }
-
+# User data for EC2 to install postgresql
 data "template_file" "user_data_database" {
   template = <<-EOF
               #!/bin/bash
@@ -34,13 +34,13 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# Attach the user data to the EC2 instance
+# EC2 instance with nginx running
 resource "aws_instance" "yuvraj-nginx" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
   subnet_id     = module.my_vpc.private_subnets[0]
   vpc_security_group_ids = [aws_security_group.nginx-instance-sg.id]
-  user_data = data.template_file.user_data.rendered
+  user_data = data.template_file.user_data_nginx.rendered
   tags = {
     Name = "nginx-example",
     Environment = "setu-yuvraj"
@@ -51,13 +51,14 @@ resource "aws_instance" "yuvraj-nginx" {
   ]
 }
 
-# Attach the user data to the EC2 instance
+# Creating an internal instance. Can be considered for internal communication.
+# Not reachable by loadbalancer
 resource "aws_instance" "yuvraj-nginx-internal" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
   subnet_id     = module.my_vpc.private_subnets[1]
   vpc_security_group_ids = [aws_security_group.internal-instance-sg.id]
-  user_data = data.template_file.user_data.rendered
+  user_data = data.template_file.user_data_nginx.rendered
   tags = {
     Name = "nginx-internal",
     Environment = "setu-yuvraj"
@@ -68,7 +69,7 @@ resource "aws_instance" "yuvraj-nginx-internal" {
   ]
 }
 
-# Attach the user data to the EC2 instance
+# Creating the postgres database instance on EC2
 resource "aws_instance" "yuvraj-database" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
